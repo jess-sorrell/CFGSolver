@@ -75,7 +75,6 @@ extern "C" value picosat_AddVariable(value mng)
   PicoSAT * solver = (PicoSAT *)mng;
   assert(solver != NULL);
   int retval = picosat_inc_max_var(solver);
-
   CAMLreturn ( Val_int(retval) );
 }
 
@@ -85,15 +84,14 @@ extern "C" value picosat_AddClause(value mng, value clause_lits, value gid)
   CAMLparam3 ( mng, clause_lits, gid );
   PicoSAT * solver = (PicoSAT *)mng;
   int context = picosat_context(solver);
-  int id = (int)gid;
+  int id = Int_val(gid);
 
   int size = Wosize_val(clause_lits);
   
   if(size > 0){
     if( id != 0 && context == 0 ){
-      context = picosat_push(solver);
-      int max = picosat_inc_max_var(solver); 
-    }
+         context = picosat_push(solver);
+       }
   }
   
 
@@ -105,18 +103,16 @@ extern "C" value picosat_AddClause(value mng, value clause_lits, value gid)
 
       temp = Int_val( Field(clause_lits, i) );
       if (temp > 0){ 
-	arr[i] = temp;
-
+	arr[i] = temp ;
 	}
       else{
-	arr[i] = temp *(-1);
+	arr[i] = temp ;
 
       }
       //    printf("arr[%d]=%d\n", i, arr[i]);
     }
 
   arr[size] = 0;
-  
   
   picosat_add_lits( solver, arr );
   CAMLreturn ( Val_unit );
@@ -126,7 +122,8 @@ extern "C" value picosat_AddClause(value mng, value clause_lits, value gid)
 extern "C" value picosat_DeleteClauseGroup(value mng, value gid)
 {
   CAMLparam2 ( mng, gid );
-  picosat_pop( (PicoSAT *)mng );
+  PicoSAT * solver = (PicoSAT*) mng;
+  picosat_pop( solver );
   CAMLreturn ( Val_unit );
 }
 
@@ -145,8 +142,7 @@ extern "C" value  picosat_Reset(value mng)
 extern "C" value picosat_AllocClauseGroupID(value mng)
 {
   CAMLparam1 ( mng );
-  int retval = picosat_context( (PicoSAT *)mng );
-
+  int retval = picosat_alloc_groupID( (PicoSAT *)mng );
   CAMLreturn( Val_int( retval ) );
 }
 
@@ -167,7 +163,6 @@ extern "C" value picosat_Solve( value mng)
 
   CAMLparam1 ( mng );
   int retval = picosat_sat( (PicoSAT *) mng, -1 );
-  printf("Satisfiable? %d \n", retval);
   if (retval == 10){
     retval = 2;
   }
@@ -181,7 +176,7 @@ extern "C" value picosat_GetVarAsgnment(value mng, value v_idx)
 {
   CAMLparam2 ( mng, v_idx );
   int retval = picosat_deref( (PicoSAT *)mng, Int_val(v_idx) );
-  CAMLreturn( Val_int(retval) );
+   CAMLreturn( Val_int(retval) );
 }
 
 
