@@ -57,10 +57,6 @@ extern "C" value picosat_ReleaseManager(value mng)
   PicoSAT * solver = (PicoSAT *)mng;
   picosat_reset(solver);
 
-  //  printf("picosat solve is released \n");
-  
-  // fflush (stdout);
-
   CAMLreturn(Val_unit);
 }
 
@@ -68,7 +64,6 @@ extern "C" value picosat_SetNumVariables(value mng, value num_vars)
 {
   CAMLparam2 ( mng, num_vars );
   PicoSAT * solver = (PicoSAT *)mng;
-  printf("Setting num vars to %d \n", num_vars);
   picosat_adjust( solver, Int_val(num_vars));
   CAMLreturn ( Val_unit );
 }
@@ -80,8 +75,7 @@ extern "C" value picosat_AddVariable(value mng)
   PicoSAT * solver = (PicoSAT *)mng;
   assert(solver != NULL);
   int retval = picosat_inc_max_var(solver);
-  printf("Adding variable %d \n", retval);
-  // int clause = picosat_add(solver, retval);
+
   CAMLreturn ( Val_int(retval) );
 }
 
@@ -92,39 +86,37 @@ extern "C" value picosat_AddClause(value mng, value clause_lits, value gid)
   PicoSAT * solver = (PicoSAT *)mng;
   int context = picosat_context(solver);
   int id = (int)gid;
+
   int size = Wosize_val(clause_lits);
-  printf("size = %d \n", size);
   
   if(size > 0){
     if( id != 0 && context == 0 ){
       context = picosat_push(solver);
-      printf("Pushing with id %d \n", gid);
       int max = picosat_inc_max_var(solver); 
     }
   }
   
 
-  int * arr = new int[size];
+  int * arr = new int[size + 1];
   int i , temp ;
 
   for (i = 0; i < size; i++)
     {
-      printf("In the for loop \n");
+
       temp = Int_val( Field(clause_lits, i) );
       if (temp > 0){ 
-	arr[i] = temp ;
-	printf("in addclause, adding %d \n", arr[i]);
+	arr[i] = temp;
+
 	}
       else{
-	arr[i] = temp * (-1);
-	printf("in addclause, adding %d \n", arr[i]);
+	arr[i] = temp *(-1);
+
       }
       //    printf("arr[%d]=%d\n", i, arr[i]);
     }
 
- 
+  arr[size] = 0;
   
-  printf("about to add things \n");
   
   picosat_add_lits( solver, arr );
   CAMLreturn ( Val_unit );
@@ -154,7 +146,7 @@ extern "C" value picosat_AllocClauseGroupID(value mng)
 {
   CAMLparam1 ( mng );
   int retval = picosat_context( (PicoSAT *)mng );
-  printf("Allocating CGID %d \n", retval);
+
   CAMLreturn( Val_int( retval ) );
 }
 
@@ -188,7 +180,6 @@ extern "C" value picosat_Solve( value mng)
 extern "C" value picosat_GetVarAsgnment(value mng, value v_idx)
 {
   CAMLparam2 ( mng, v_idx );
-  printf("Getting value of variable id %d \n", Int_val(v_idx));
   int retval = picosat_deref( (PicoSAT *)mng, Int_val(v_idx) );
   CAMLreturn( Val_int(retval) );
 }
@@ -199,7 +190,6 @@ extern "C" value picosat_NumLiterals(value mng)
   CAMLparam1 ( mng );
   PicoSAT * solver = (PicoSAT*)mng;
   int retval = picosat_lits(solver);
-  printf("Returning numlits %d \n", retval);
   CAMLreturn ( Val_int(retval) );
 }
 
